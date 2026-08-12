@@ -24,3 +24,5 @@ enum Types* ntgType = NULL;
 enum Types* ntvType = NULL;
 struct ButterVariants* GlobalVars = NULL;
 struct Functions* functions = NULL;
+
+int ntgSize, ntvSize, ntfSize, funcSize, GlobalVarsSize= 0;

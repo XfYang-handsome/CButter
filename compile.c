@@ -181,7 +181,7 @@ bool isValidVariableName(const char *name) {
     return true;
 }
 
-struct File* readFile(const char* filename) {
+struct File* readFile(char* filename) {
     FILE *fp = fopen(filename, "r");
     if (!fp) {
         printf("failed: %s\n", filename);
@@ -314,21 +314,21 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
     int lineCnt = file->totalLines;
 
 
-
     for (int i = 0; i < lineCnt; i++) { // 第一遍读取：获取全局变量和函数信息
 
         char** row = code[i];
 
 
-        if (row[0] == "global") {        // 如果是全局变量
+
+        if (strcmp(row[0], "global") == 0) {        // 如果是全局变量
             if (hugeQuotMark) {
                 NewError("declaration of global variable inside function", filename, i + 1);
             }
             int startKey = ntgSize;
             int cIndex = 0;
             for (int j = 1; j < codeLen[i]; j++) {
-                if (row[j] != "int" || row[j] != "float" || row[j] != "string" || row[j] != "char"
-                    || row[j] != "uint" || row[j] != "bool") {
+                if (strcmp(row[j], "int") != 0 || strcmp(row[j], "float") != 0 || strcmp(row[j], "string") != 0
+                    || strcmp(row[j], "char") != 0 || strcmp(row[j], "uint") != 0 || strcmp(row[j], "bool") != 0) {
                     if (!isValidVariableName(row[j])) {
                         NewError("invalid variable name", filename, i + 1);
                     }
@@ -346,17 +346,17 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     }
                     ntgType = ntgType_temp;
                     for (int k = startKey; k < ntgSize; k++) {
-                        if (row[j] == "int") {
+                        if (strcmp(row[j], "int") == 0) {
                             ntgType[k] = Int;
-                        } else if (row[j] == "float") {
+                        } else if (strcmp(row[j], "float") == 0) {
                             ntgType[k] = Float;
-                        } else if (row[j] == "string") {
+                        } else if (strcmp(row[j], "string") == 0) {
                             ntgType[k] = String;
-                        } else if (row[j] == "char") {
+                        } else if (strcmp(row[j], "char") == 0) {
                             ntgType[k] = Char;
-                        } else if (row[j] == "uint") {
+                        } else if (strcmp(row[j], "uint") == 0) {
                             ntgType[k] = Uint;
-                        } else if (row[j] == "bool") {
+                        } else if (strcmp(row[j], "bool") == 0) {
                             ntgType[k] = Bool;
                         }
                     }
@@ -382,20 +382,30 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     GlobalVars[GlobalVarsSize-1] = value;
                 }
             }
-        } else if (row[0] == "func" || row[0] == "run") {  // 如果是函数
+        } else if (strcmp(row[0], "func") == 0 || strcmp(row[0], "run") == 0) {  // 如果是函数
+
+
+
+            if (hugeQuotMark) {
+                NewError("declaration of function inside function", filename, i + 1);
+            }
+
             int startKey = ntfSize;
             int j = 1;
             int inQuotes = 0;
             struct Functions bFunc;
-            bFunc.doRun = row[0] == "run";
+            bFunc.doRun = strcmp(row[0], "func");
             bFunc.varSize = 0;
             bFunc.initialVars = NULL;
             bFunc.returnSize = 0;
             bFunc.returnType = NULL;
-            while (row[j] != "->") { // 获取函数名称和初始变量
-                if (row[j] == "(") {
+            bFunc.code = NULL;
+            bFunc.codeSize = 0;
+            struct Variables var = {};
+            while (strcmp(row[j], "->") != 0) { // 获取函数名称和初始变量
+                if (strcmp(row[j], "(") == 0) {
                     inQuotes++;
-                } else if (row[j] == ")") {
+                } else if (strcmp(row[j], ")") == 0) {
                     inQuotes--;
                 } else {
                     if (!inQuotes) {
@@ -416,32 +426,29 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                             NewError("extra function name", filename, i + 1);
                         }
                     } else {
-                        struct Variables var = {};
-                        if (row[j] != "int" && row[j] != "float" && row[j] != "string" &&
-                            row[j] != "char" && row[j] != "uint" && row[j] != "bool") {
+
+                        if (strcmp(row[j], "int") != 0 && strcmp(row[j], "float") != 0  && strcmp(row[j], "string") != 0 &&
+                            strcmp(row[j], "char") != 0 && strcmp(row[j], "uint") != 0 && strcmp(row[j], "bool") != 0) {
                             if (!isValidVariableName(row[j])) {
                                 NewError("invalid variable name", filename, i + 1);
-                            }
-                            if (var.name == "" || var.type == -1) {
-                                NewError("incomplete variable declaration", filename, i + 1);
                             }
                             var.name = "";
                             var.type = -1;
                             var.name = row[j];
-                        } else if (row[i] == ",") {
+                        } else if (strcmp(row[j], ",") == 0) {
 
                         } else {
-                            if (row[j] == "int") {
+                            if (strcmp(row[j], "int") == 0) {
                                 var.type = Int;
-                            } else if (row[j] == "float") {
+                            } else if (strcmp(row[j], "float") == 0) {
                                 var.type = Float;
-                            } else if (row[j] == "string") {
+                            } else if (strcmp(row[j], "string") == 0) {
                                 var.type = String;
-                            } else if (row[j] == "char") {
+                            } else if (strcmp(row[j], "char") == 0) {
                                 var.type = Char;
-                            } else if (row[j] == "uint") {
+                            } else if (strcmp(row[j], "uint") == 0) {
                                 var.type = Uint;
-                            } else if (row[j] == "bool") {
+                            } else if (strcmp(row[j], "bool") == 0) {
                                 var.type = Bool;
                             } else {
                                 NewError("unknown type", filename, i + 1);
@@ -452,7 +459,7 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                                 free(bFunc.initialVars);
                             }
                             bFunc.initialVars = var_temp;
-                            if (var.name == "" || var.type == -1) {
+                            if (strcmp(var.name, "") == 0 || var.type == -1) {
                                 NewError("incomplete variable declaration", filename, i + 1);
                             }
                             bFunc.initialVars[bFunc.varSize-1] = var;
@@ -462,8 +469,8 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                 j++;
             }
             j++;
-            while (row[j] != "{") {  // 获取返回值类型
-                if (row[j] == "int") {
+            while (strcmp(row[j], "{") != 0) {  // 获取返回值类型
+                if (strcmp(row[j], "int") == 0) {
                     bFunc.returnSize++;
                     enum Types* temp_type = realloc(bFunc.returnType, bFunc.returnSize * sizeof(int));
                     if (!temp_type) {
@@ -471,7 +478,7 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     }
                     bFunc.returnType = temp_type;
                     bFunc.returnType[bFunc.returnSize-1] = Int;
-                } else if (row[j] == "float") {
+                } else if (strcmp(row[j], "float") == 0) {
                     bFunc.returnSize++;
                     enum Types* temp_type = realloc(bFunc.returnType, bFunc.returnSize * sizeof(int));
                     if (!temp_type) {
@@ -480,7 +487,7 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     bFunc.returnType = temp_type;
                     bFunc.returnType[bFunc.returnSize-1] = Float;
 
-                } else if (row[j] == "string") {
+                } else if (strcmp(row[j], "string") == 0) {
                     bFunc.returnSize++;
                     enum Types* temp_type = realloc(bFunc.returnType, bFunc.returnSize * sizeof(int));
                     if (!temp_type) {
@@ -488,7 +495,7 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     }
                     bFunc.returnType = temp_type;
                     bFunc.returnType[bFunc.returnSize-1] = String;
-                } else if (row[j] == "char") {
+                } else if (strcmp(row[j], "char") == 0) {
                     bFunc.returnSize++;
                     enum Types* temp_type = realloc(bFunc.returnType, bFunc.returnSize * sizeof(int));
                     if (!temp_type) {
@@ -496,7 +503,7 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     }
                     bFunc.returnType = temp_type;
                     bFunc.returnType[bFunc.returnSize-1] = Char;
-                } else if (row[j] == "uint") {
+                } else if (strcmp(row[j], "uint") == 0) {
                     bFunc.returnSize++;
                     enum Types* temp_type = realloc(bFunc.returnType, bFunc.returnSize * sizeof(int));
                     if (!temp_type) {
@@ -504,7 +511,7 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     }
                     bFunc.returnType = temp_type;
                     bFunc.returnType[bFunc.returnSize-1] = Uint;
-                } else if (row[j] == "bool") {
+                } else if (strcmp(row[j], "bool") == 0) {
                     bFunc.returnSize++;
                     enum Types* temp_type = realloc(bFunc.returnType, bFunc.returnSize * sizeof(int));
                     if (!temp_type) {
@@ -512,13 +519,35 @@ struct ButterVariants* compileFile(struct File* file, char* filename) {
                     }
                     bFunc.returnType = temp_type;
                     bFunc.returnType[bFunc.returnSize-1] = Bool;
-                } else if (row[j] == ",") {
+                } else if (strcmp(row[j], ",") == 0) {
 
+                } else if (strcmp(row[j], "void") == 0) {
+                    if (bFunc.returnSize != 0) {
+                        NewError("the function has already had return values", filename, i + 1);
+                    }
                 } else {
                     NewError("unknown type", filename, i + 1);
                 }
                 j++;
             }
+            hugeQuotMark++;
+            funcSize++;
+            struct Functions* temp_func = realloc(functions, funcSize * sizeof(struct Functions));
+            if (!temp_func) {
+                free(functions);
+            }
+            functions = temp_func;
+            functions[funcSize-1] = bFunc;
+        } else {
+            for (int j = 0; j < codeLen[i]; j++) {
+                if (strcmp(row[j], "{") == 0) {
+                    hugeQuotMark++;
+                } else if (strcmp(row[j], "}") == 0) {
+                    hugeQuotMark--;
+                }
+            }
         }
     }
+
+    return NULL;
 }

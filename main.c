@@ -4,12 +4,7 @@
 #include "consts.h"
 #include "compile.h"
 #include <dirent.h>
-int ntvSize = 0;
-int ntgSize = 0;
-int ntfSize = 0;
-char** nameToVar = NULL;
-char** nameToGVar = NULL;
-char** nameToFunc = NULL;
+
 int main() {
     struct File *file = readFile("test.but");
     if (!file) {
@@ -23,7 +18,7 @@ int main() {
         }
         printf("\n");
     }
-
+    compileFile(file, "test.but");
     // 清理内存
     for (int row = 0; row < file->totalLines; row++) {
         for (int col = 0; col < file->tokenCnt[row]; col++) {
@@ -34,6 +29,9 @@ int main() {
     free(file->word);
     free(file->tokenCnt);
     free(file);
+
+
+
 
     return 0;
 }

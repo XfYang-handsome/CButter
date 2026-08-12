@@ -8,7 +8,7 @@ int opCompare (const struct op* a, const struct op* b);
 
 uint64_t opHash (const struct op* a, uint64_t seed0, uint64_t seed1);
 
-struct File* readFile(const char *filename);
+struct File* readFile(char *filename);
 
 struct ButterVariants* compileFile(struct File* file, char* filename);
 
